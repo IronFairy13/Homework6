@@ -1,8 +1,6 @@
 #pragma once
-#include <iostream>
 #include <unordered_map>
 #include <tuple>
-#include <cstdint>
 #include <utility>
 #include <type_traits>
 #include <iterator>
@@ -31,23 +29,25 @@ private:
     std::unordered_map<Key, value_type, KeyHash> data_;
     static constexpr value_type kDefault = Default;
 
-    value_type get(index_type x, index_type y) const
+    value_type get(index_type x, index_type y) const noexcept(std::is_nothrow_copy_constructible<value_type>::value)
     {
-        auto it = data_.find({x, y});
+        const Key key{x, y};
+        auto it = data_.find(key);
         return it == data_.end() ? kDefault : it->second;
     }
 
     void set(index_type x, index_type y, const value_type &v)
     {
+        const Key key{x, y};
         if (v == kDefault)
         {
-            auto it = data_.find({x, y});
+            auto it = data_.find(key);
             if (it != data_.end())
                 data_.erase(it);
         }
         else
         {
-            data_[{x, y}] = v;
+            data_[key] = v;
         }
     }
 
@@ -58,7 +58,7 @@ public:
         index_type x_, y_;
 
     public:
-        CellProxy(Matrix &m, index_type x, index_type y) : m_(m), x_(x), y_(y) {}
+        CellProxy(Matrix &m, index_type x, index_type y) noexcept : m_(m), x_(x), y_(y) {}
         operator value_type() const { return m_.get(x_, y_); }
         CellProxy &operator=(const value_type &v)
         {
@@ -75,7 +75,7 @@ public:
         index_type x_;
 
     public:
-        RowProxy(Matrix &m, index_type x) : m_(m), x_(x) {}
+        RowProxy(Matrix &m, index_type x) noexcept : m_(m), x_(x) {}
         CellProxy operator[](index_type y) { return CellProxy(m_, x_, y); }
     };
 
@@ -85,7 +85,7 @@ public:
         index_type x_, y_;
 
     public:
-        ConstCellProxy(const Matrix &m, index_type x, index_type y) : m_(m), x_(x), y_(y) {}
+        ConstCellProxy(const Matrix &m, index_type x, index_type y) noexcept : m_(m), x_(x), y_(y) {}
         operator value_type() const { return m_.get(x_, y_); }
     };
 
@@ -95,7 +95,7 @@ public:
         index_type x_;
 
     public:
-        ConstRowProxy(const Matrix &m, index_type x) : m_(m), x_(x) {}
+        ConstRowProxy(const Matrix &m, index_type x) noexcept : m_(m), x_(x) {}
         ConstCellProxy operator[](index_type y) const { return ConstCellProxy(m_, x_, y); }
     };
 
@@ -111,7 +111,7 @@ public:
         using reference = value_type_it;
         using pointer = void;
 
-        explicit const_iterator(map_citer it) : it_(it) {}
+        explicit const_iterator(map_citer it) noexcept : it_(it) {}
         value_type_it operator*() const { return {it_->first.first, it_->first.second, it_->second}; }
         const_iterator &operator++()
         {
@@ -124,14 +124,14 @@ public:
             ++(*this);
             return tmp;
         }
-        bool operator==(const const_iterator &rhs) const { return it_ == rhs.it_; }
-        bool operator!=(const const_iterator &rhs) const { return !(*this == rhs); }
+        bool operator==(const const_iterator &rhs) const noexcept { return it_ == rhs.it_; }
+        bool operator!=(const const_iterator &rhs) const noexcept { return !(*this == rhs); }
     };
 
     RowProxy operator[](index_type x) { return RowProxy(*this, x); }                 
     ConstRowProxy operator[](index_type x) const { return ConstRowProxy(*this, x); } 
 
     std::size_t size() const noexcept { return data_.size(); }
-    const_iterator begin() const { return const_iterator(data_.cbegin()); }
-    const_iterator end() const { return const_iterator(data_.cend()); }
+    const_iterator begin() const noexcept { return const_iterator(data_.cbegin()); }
+    const_iterator end() const noexcept { return const_iterator(data_.cend()); }
 };

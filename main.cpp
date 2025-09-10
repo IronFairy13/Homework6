@@ -6,22 +6,35 @@
 int main()
 {
     Matrix<int, -1> matrix;
-    assert(matrix.size() == 0); // все ячейки свободны
-    auto a = matrix[0][0];
-    assert(a == -1);
-    assert(matrix.size() == 0);
-    matrix[100][100] = 314;
-    assert(matrix[100][100] == 314);
-    assert(matrix.size() == 1);
-    // выведется одна строка
-    // 100100314
-    for (auto c : matrix)
+
+    for (int i = 0; i < 10; ++i)
+        matrix[i][i] = i; 
+
+    for (int i = 0; i < 10; ++i)
+        matrix[i][9 - i] = 9 - i; 
+
+    std::cout << "Fragment [1,1]..[8,8]:" << std::endl;
+    for (int y = 1; y <= 8; ++y)
     {
-        int x;
-        int y;
-        int v;
-        std::tie(x, y, v) = c;
-        std::cout << x << y << v << std::endl;
+        for (int x = 1; x <= 8; ++x)
+        {
+            std::cout << static_cast<int>(matrix[y][x]);
+            if (x < 8)
+                std::cout << ' ';
+        }
+        std::cout << std::endl;
     }
+
+    std::cout << "Occupied cells count: " << matrix.size() << std::endl;
+    assert(matrix.size() == 20);
+
+    std::cout << "Occupied cells (x y v):" << std::endl;
+    for (auto cell : matrix)
+    {
+        int x, y, v;
+        std::tie(x, y, v) = cell;
+        std::cout << x << ' ' << y << ' ' << v << std::endl;
+    }
+
     return 0;
 }
