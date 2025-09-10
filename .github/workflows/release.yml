@@ -45,7 +45,6 @@ jobs:
           -DCMAKE_TOOLCHAIN_FILE=build/conan_toolchain.cmake \
           -DCMAKE_BUILD_TYPE=Release
 
-
       - name: Build
         run: cmake --build build --config Release
 
@@ -63,14 +62,16 @@ jobs:
           echo "deb_path=$DEB_PATH" >> $GITHUB_OUTPUT
           echo "deb_file=$DEB_FILE" >> $GITHUB_OUTPUT
 
+      # --- УНИКАЛЬНЫЙ ТЕГ ДЛЯ КАЖДОГО ЗАПУСКА ---
       - name: Create GitHub Release
         id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.run_number }}
-          release_name: Release ${{ github.run_number }}
+          # пример: v0.1.123-r2-<SHA>
+          tag_name: v0.1.${{ github.run_number }}-r${{ github.run_attempt }}-${{ github.sha }}
+          release_name: Release v0.1.${{ github.run_number }} (attempt ${{ github.run_attempt }})
           draft: false
           prerelease: false
 
